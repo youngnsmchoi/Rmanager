@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load question_filter %}
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Consumables Tables</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Product_name</th>
+                        <th>Team_name</th>
+                        <th>Manufacturer</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Product_name</th>
+                        <th>Team_name</th>
+                        <th>Manufacturer</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Author</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    {% for question in questions %}
+                    <tr>
+                        <td><a href="{% url 'con_detail' question.id %}">{{ question.product_name }}</a></td>
+                        <td>{{ question.team_name}}</td>
+                        <td>{{ question.manufacturer}}</td>
+                        <td>{{ question.category}}</td>
+                        <td>{{ question.quantity}}}</td>
+                        <td>{{ question.author}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row justify-content-end my-3">
+            <div class="col-4 input-group">
+                <input type="text" class="form-control kw" value="{{ kw|default_if_none:'' }}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-primary" type="button" id="btn_search">찾기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% if user.is_authenticated %}
+<a href="{% url 'consumablecreate' %}" class="btn btn-primary btn-icon-split">
+    <span class="icon text-white-50">
+        <i class="fas fa-flag"></i>
+    </span>
+    <span class="text">Enroll Consumable</span>
+</a>
+{% endif %}
+
+<form id="searchForm" method="get" action="{% url 'consumables' %}">
+    <input type="hidden" id="kw" name="kw" value="{{ kw|default_if_none:'' }}">
+    <input type="hidden" id="page" name="page" value="{{ page }}">
+</form>
+
+<!-- 페이징처리 시작 -->
+<ul class="pagination justify-content-center">
+    <!-- 이전페이지 -->
+    {% if questions.has_previous %}
+    <li class="page-item">
+        <a class="page-link" data-page="{{ questions.previous_page_number }}" href="#">이전</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+        <a class="page-link" tabindex="-1" aria-disabled="true" href="#">이전</a>
+    </li>
+    {% endif %}
+    <!-- 페이지리스트 -->
+    {% for page_number in questions.paginator.page_range %}
+    {% if page_number >= questions.number|add:-5 and page_number <= questions.number|add:5 %} 
+    {% if page_number == questions.number %} 
+        <li class="page-item active" aria-current="page">
+            <a class="page-link" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
+        </li>
+        {% endif %}
+    {% endif %}
+    {% endfor %}
+        <!-- 다음페이지 -->
+        {% if questions.has_next %}
+        <li class="page-item">
+            <a class="page-link" data-page="{{ questions.next_page_number }}" href="#">다음</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">다음</a>
+        </li>
+        {% endif %}
+</ul>
+<!-- 페이징처리 끝 -->
+
+</div>
+
+
+{% endblock %}
+{% block script %}
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".page-link").on('click', function() {
+        $("#page").val($(this).data("page"));
+        $("#searchForm").submit();
+    });
+
+    $("#btn_search").on('click', function() {
+        $("#kw").val($(".kw").val());
+        $("#page").val(1);  // 검색버튼을 클릭할 경우 1페이지부터 조회한다.
+        $("#searchForm").submit();
+    });
+});
+</script>
+{% endblock %}
